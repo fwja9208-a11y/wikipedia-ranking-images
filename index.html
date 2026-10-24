@@ -219,6 +219,19 @@ let vTitle='',vLoaded={};
 const bodyCache=new Map(),imgCache=new Map();
 
 let viewerPushed=false,suppressBack=false;
+function openViewer(title,tab){
+if(viewer.hidden){try{history.pushState({viewer:1},'')}catch(e){}viewerPushed=true}
+vTitle=title;vLoaded={};
+$('vTitle').textContent=displayTitle(title);
+$('vExt').href=titleUrl(title);
+$('tabGoogle').href=googleUrl(title);
+$('gBtn').textContent='Google画像検索で「'+displayTitle(title)+'」を開く ↗';
+$('gBtn').href=googleUrl(title);
+viewer.hidden=false;
+$('page').style.display='none';
+document.body.classList.add('locked');
+switchTab(tab||'body');
+}
 function doClose(){
 viewer.hidden=true;
 $('page').style.display='';
@@ -230,13 +243,26 @@ $('imgCount').textContent='';
 function closeViewer(){
 if(viewer.hidden)return;
 const wasPushed=viewerPushed;viewerPushed=false;doClose();
-if(wasPushed){suppressBack=true;history.back()}
+if(wasPushed){suppressBack=true;try{history.back()}catch(e){}}
 }
 window.addEventListener('popstate',e=>{
 if(suppressBack){suppressBack=false;return}
 if(e.state&&e.state.viewer)return;
 if(!viewer.hidden){viewerPushed=false;doClose()}
 });
+function switchTab(tab){
+vLoaded[tab]=true;
+$('tabBody').classList.toggle('on',tab==='body');
+$('tabBody').setAttribute('aria-selected',String(tab==='body'));
+$('tabImg').classList.toggle('on',tab==='images');
+$('tabImg').setAttribute('aria-selected',String(tab==='images'));
+$('vBody').hidden=tab!=='body';
+$('vImgs').hidden=tab!=='images';
+if(tab==='body'&&!bodyCache.has(vTitle))loadBody(vTitle);
+if(tab==='images'&&!imgCache.has(vTitle))loadImages(vTitle);
+if(tab==='body'&&bodyCache.has(vTitle))renderBody(vTitle);
+if(tab==='images'&&imgCache.has(vTitle))renderImages(vTitle);
+}
 $('vClose').onclick=closeViewer;
 $('tabBody').onclick=()=>switchTab('body');
 $('tabImg').onclick=()=>switchTab('images');
