@@ -297,7 +297,7 @@ const nodes=[...holder.childNodes];
 const out=document.createDocumentFragment();
 let cur=null;
 nodes.forEach(n=>{
-const isH=n.nodeType===1&&/^H[1-4]$/.test(n.tagName);
+const isH=n.nodeType===1&&/^H[1-2]$/.test(n.tagName);
 if(isH){
 if(cur)out.appendChild(cur);
 cur=document.createElement('details');
