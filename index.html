@@ -1,4 +1,4 @@
-<!doctype html>
+!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -62,6 +62,14 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .article ul,.article ol{padding-left:24px;margin:10px 0}
 .article figure{margin:12px 0}
 .article a{color:#2456a6}
+/* 折りたたみ(見出しごとに開閉) */
+.article details{border-bottom:1px solid #dce4ef}
+.article summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;font-weight:700;font-size:16px;padding:10px 2px}
+.article summary::-webkit-details-marker{display:none}
+.article summary::before{content:"";flex:none;width:8px;height:8px;border-right:2px solid #526174;border-bottom:2px solid #526174;transform:rotate(-45deg);transition:transform .15s}
+.article details[open]>summary::before{transform:rotate(45deg)}
+.article summary h2,.article summary h3,.article summary h4{margin:0;font-size:16px;line-height:1.4}
+.article .secbody{padding:2px 2px 10px 12px}
 </style>
 </head>
 <body>
@@ -248,6 +256,7 @@ $('tabImg').onclick=()=>switchTab('images');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!viewer.hidden)closeViewer()});
 
 async function loadBody(title){
+$('vBody').innerHTML='<p class="ph">本文を読み込んでいます…</p>';
 const controller=new AbortController();
 let timer;
 try{
@@ -279,6 +288,30 @@ if(tb.parentElement&&tb.parentElement.classList.contains('tblwrap'))return;
 const w=document.createElement('div');w.className='tblwrap';
 tb.parentElement.insertBefore(w,tb);w.appendChild(tb);
 });
+(function collapse(holder){
+const nodes=[...holder.childNodes];
+const out=document.createDocumentFragment();
+let cur=null;
+nodes.forEach(n=>{
+const isH=n.nodeType===1&&/^H[1-4]$/.test(n.tagName);
+if(isH){
+if(cur)out.appendChild(cur);
+cur=document.createElement('details');
+const s=document.createElement('summary');
+s.appendChild(n);
+const body=document.createElement('div');
+body.className='secbody';
+cur.appendChild(s);cur.appendChild(body);
+}else if(cur){
+cur.lastElementChild.appendChild(n);
+}else{
+out.appendChild(n);
+}
+});
+if(cur)out.appendChild(cur);
+holder.innerHTML='';
+holder.appendChild(out);
+})(holder);
 bodyCache.set(title,holder);
 renderBody(title);
 }catch(e){
