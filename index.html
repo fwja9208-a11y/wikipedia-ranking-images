@@ -289,6 +289,10 @@ const w=document.createElement('div');w.className='tblwrap';
 tb.parentElement.insertBefore(w,tb);w.appendChild(tb);
 });
 (function collapse(holder){
+holder.querySelectorAll('section').forEach(sec=>{
+while(sec.firstChild)sec.parentNode.insertBefore(sec.firstChild,sec);
+sec.remove();
+});
 const nodes=[...holder.childNodes];
 const out=document.createDocumentFragment();
 let cur=null;
