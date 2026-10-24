@@ -64,11 +64,11 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .article a{color:#2456a6}
 /* 折りたたみ(見出しごとに開閉) */
 .article details{border-bottom:1px solid #dce4ef}
-.article summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;font-weight:700;font-size:16px;padding:10px 2px}
+.article summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:52px;font-weight:700;font-size:19px;padding:12px 2px}
 .article summary::-webkit-details-marker{display:none}
 .article summary::before{content:"";flex:none;width:8px;height:8px;border-right:2px solid #526174;border-bottom:2px solid #526174;transform:rotate(-45deg);transition:transform .15s}
 .article details[open]>summary::before{transform:rotate(45deg)}
-.article summary h2,.article summary h3,.article summary h4{margin:0;font-size:16px;line-height:1.4}
+.article summary h2,.article summary h3,.article summary h4{margin:0;font-size:19px;line-height:1.4}
 .article .secbody{padding:2px 2px 10px 12px}
 </style>
 </head>
@@ -95,7 +95,7 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 
 <div id="viewer" hidden role="dialog" aria-modal="true" aria-label="記事ビューア">
 <div class="vbar">
-<button id="vClose" aria-label="閉じる">✕</button>
+<button id="vClose" aria-label="閉じる(一覧に戻る)">✕ 一覧に戻る</button>
 <strong id="vTitle"></strong>
 <a id="vExt" target="_blank" rel="noopener" aria-label="Wikipediaで開く">↗</a>
 </div>
@@ -217,7 +217,9 @@ const viewer=$('viewer');
 let vTitle='',vLoaded={};
 const bodyCache=new Map(),imgCache=new Map();
 
+let viewerPushed=false;
 function openViewer(title,tab){
+if(viewer.hidden){history.pushState({viewer:1},'');viewerPushed=true}
 vTitle=title;vLoaded={};
 $('vTitle').textContent=displayTitle(title);
 $('vExt').href=titleUrl(title);
@@ -230,6 +232,7 @@ document.body.classList.add('locked');
 switchTab(tab||'body');
 }
 function closeViewer(){
+if(viewerPushed){viewerPushed=false;history.back();return}
 viewer.hidden=true;
 $('page').style.display='';
 document.body.classList.remove('locked');
@@ -237,7 +240,9 @@ $('vBody').innerHTML='';
 $('grid').innerHTML='';
 $('imgCount').textContent='';
 }
-function switchTab(tab){
+window.addEventListener('popstate',()=>{if(!viewer.hidden){viewerPushed=false;closeViewer2()}});
+function closeViewer2(){
+viewer.hidden=true;
 vLoaded[tab]=true;
 $('tabBody').classList.toggle('on',tab==='body');
 $('tabBody').setAttribute('aria-selected',String(tab==='body'));
