@@ -38,6 +38,7 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 #viewer[hidden]{display:none}
 .vbar{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #dce4ef;background:#fff}
 .vbar button,.vbar a{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#2456a6;text-decoration:none;border:0;background:none;cursor:pointer}
+.vbar #vClose{width:auto;min-width:44px;padding:0 10px;white-space:nowrap}
 #vTitle{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vtabs{display:flex;border-bottom:1px solid #dce4ef}
 .vtabs button,.vtabs a{font:inherit;min-height:44px;padding:10px 12px;border:0;background:#fff;color:#526174;border-bottom:3px solid transparent;text-decoration:none;font-weight:600}
@@ -217,22 +218,8 @@ const viewer=$('viewer');
 let vTitle='',vLoaded={};
 const bodyCache=new Map(),imgCache=new Map();
 
-let viewerPushed=false;
-function openViewer(title,tab){
-if(viewer.hidden){history.pushState({viewer:1},'');viewerPushed=true}
-vTitle=title;vLoaded={};
-$('vTitle').textContent=displayTitle(title);
-$('vExt').href=titleUrl(title);
-$('tabGoogle').href=googleUrl(title);
-$('gBtn').textContent='Google画像検索で「'+displayTitle(title)+'」を開く ↗';
-$('gBtn').href=googleUrl(title);
-viewer.hidden=false;
-$('page').style.display='none';
-document.body.classList.add('locked');
-switchTab(tab||'body');
-}
-function closeViewer(){
-if(viewerPushed){viewerPushed=false;history.back();return}
+let viewerPushed=false,suppressBack=false;
+function doClose(){
 viewer.hidden=true;
 $('page').style.display='';
 document.body.classList.remove('locked');
@@ -240,21 +227,16 @@ $('vBody').innerHTML='';
 $('grid').innerHTML='';
 $('imgCount').textContent='';
 }
-window.addEventListener('popstate',()=>{if(!viewer.hidden){viewerPushed=false;closeViewer2()}});
-function closeViewer2(){
-viewer.hidden=true;
-vLoaded[tab]=true;
-$('tabBody').classList.toggle('on',tab==='body');
-$('tabBody').setAttribute('aria-selected',String(tab==='body'));
-$('tabImg').classList.toggle('on',tab==='images');
-$('tabImg').setAttribute('aria-selected',String(tab==='images'));
-$('vBody').hidden=tab!=='body';
-$('vImgs').hidden=tab!=='images';
-if(tab==='body'&&!bodyCache.has(vTitle))loadBody(vTitle);
-if(tab==='images'&&!imgCache.has(vTitle))loadImages(vTitle);
-if(tab==='body'&&bodyCache.has(vTitle))renderBody(vTitle);
-if(tab==='images'&&imgCache.has(vTitle))renderImages(vTitle);
+function closeViewer(){
+if(viewer.hidden)return;
+const wasPushed=viewerPushed;viewerPushed=false;doClose();
+if(wasPushed){suppressBack=true;history.back()}
 }
+window.addEventListener('popstate',e=>{
+if(suppressBack){suppressBack=false;return}
+if(e.state&&e.state.viewer)return;
+if(!viewer.hidden){viewerPushed=false;doClose()}
+});
 $('vClose').onclick=closeViewer;
 $('tabBody').onclick=()=>switchTab('body');
 $('tabImg').onclick=()=>switchTab('images');
