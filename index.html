@@ -40,8 +40,8 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .vbar button,.vbar a{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#2456a6;text-decoration:none;border:0;background:none;cursor:pointer}
 .vbar #vClose{width:auto;min-width:44px;padding:0 10px;white-space:nowrap}
 #vTitle{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vtabs{display:flex;border-bottom:1px solid #dce4ef}
-.vtabs button,.vtabs a{font:inherit;min-height:44px;padding:10px 12px;border:0;background:#fff;color:#526174;border-bottom:3px solid transparent;text-decoration:none;font-weight:600}
+.vtabs{display:flex;border-bottom:1px solid #dce4ef;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.vtabs button,.vtabs a{font:inherit;min-height:44px;padding:10px 12px;border:0;background:#fff;color:#526174;border-bottom:3px solid transparent;text-decoration:none;font-weight:600;white-space:nowrap;flex:none}
 .vtabs .on{color:#182638;border-bottom-color:#2456a6}
 .vpane{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px}
 .gbtn{display:block;text-align:center;font:inherit;font-weight:600;min-height:44px;line-height:44px;border:1px solid #b8c7dc;border-radius:8px;background:#f0f4fa;color:#2456a6;text-decoration:none;margin-bottom:12px;overflow-wrap:anywhere;padding:0 8px}
@@ -54,7 +54,7 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .ph{color:#526174;font-size:13px;line-height:1.8;margin:0}
 .imgcount{font-size:12px;color:#526174;margin:12px 0 0;line-height:1.7}
 /* ---- article body ---- */
-.article{font-size:15px;line-height:1.8;overflow-wrap:break-word}
+.article{font-size:16px;line-height:1.8;overflow-wrap:break-word}
 .article img{max-width:100%;height:auto}
 .article .tblwrap{overflow-x:auto;margin:12px 0}
 .article table{float:none!important;width:100%!important;max-width:100%!important;border-collapse:collapse;margin:0}
@@ -71,6 +71,7 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .article details[open]>summary::before{transform:rotate(45deg)}
 .article summary h2,.article summary h3,.article summary h4{margin:0;font-size:19px;line-height:1.4}
 .article .secbody{padding:2px 2px 10px 12px}
+.article .secbody>*+*{border-top:1px solid #e4ebf6;padding-top:10px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -104,6 +105,7 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 <button id="tabBody" role="tab" aria-selected="true">Wikipedia 本文</button>
 <button id="tabImg" role="tab" aria-selected="false">画像</button>
 <a id="tabGoogle" role="tab" target="_blank" rel="noopener">Google画像検索 ↗</a>
+<a id="tabNews" role="tab" target="_blank" rel="noopener">ニュース検索 ↗</a>
 </div>
 <div id="vBody" class="vpane article" role="tabpanel"></div>
 <div id="vImgs" class="vpane" role="tabpanel" hidden>
@@ -131,6 +133,7 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 function displayTitle(t){return t.replace(/_/g,' ')}
 function titleUrl(t){return 'https://ja.wikipedia.org/wiki/'+encodeURIComponent(t)}
 function googleUrl(t){return 'https://www.google.com/search?tbm=isch&hl=ja&q='+encodeURIComponent(t)}
+function newsUrl(t){return 'https://news.google.com/search?hl=ja&gl=JP&ceid=JP%3Aja&q='+encodeURIComponent(t)}
 
 const IMG_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 14H5l4.5-6 3 4 2-2.5L19 17ZM8 9.5A1.5 1.5 0 1 1 9.5 8 1.5 1.5 0 0 1 8 9.5Z"/></svg>';
 
@@ -155,6 +158,7 @@ return '<li class="row"><span class="rank">'+(i+1)+'</span>'+
 '<div class="track"><div class="bar" style="width:'+(a.views/maxV*100).toFixed(1)+'%"></div></div></div>'+
 '<button class="imgbtn" data-t="'+escapeText(a.article)+'" aria-label="'+escapeText(displayTitle(a.article))+' の画像を見る">'+IMG_SVG+'</button></li>';
 }).join('');
+prefetchBodies();
 }
 
 async function fetchJSON(url){
@@ -225,6 +229,7 @@ vTitle=title;vLoaded={};
 $('vTitle').textContent=displayTitle(title);
 $('vExt').href=titleUrl(title);
 $('tabGoogle').href=googleUrl(title);
+$('tabNews').href=newsUrl(title);
 $('gBtn').textContent='Google画像検索で「'+displayTitle(title)+'」を開く ↗';
 $('gBtn').href=googleUrl(title);
 viewer.hidden=false;
@@ -268,8 +273,7 @@ $('tabBody').onclick=()=>switchTab('body');
 $('tabImg').onclick=()=>switchTab('images');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!viewer.hidden)closeViewer()});
 
-async function loadBody(title){
-$('vBody').innerHTML='<p class="ph">本文を読み込んでいます…</p>';
+async function getBody(title){
 const controller=new AbortController();
 let timer;
 try{
@@ -330,10 +334,25 @@ holder.innerHTML='';
 holder.appendChild(out);
 })(holder);
 bodyCache.set(title,holder);
-renderBody(title);
+return holder;
 }catch(e){
-if(!bodyCache.has(title))$('vBody').innerHTML='<p class="ph">本文を取得できませんでした。右上の ↗ からWikipediaで開けます。</p>';
+return null;
 }finally{clearTimeout(timer)}
+}
+async function loadBody(title){
+$('vBody').innerHTML='<p class="ph">本文を読み込んでいます…</p>';
+try{await getBody(title)}catch(e){}
+if(bodyCache.has(title))renderBody(title);
+else $('vBody').innerHTML='<p class="ph">本文を取得できませんでした。右上の ↗ からWikipediaで開けます。</p>';
+}
+let prefetchRunning=false;
+async function prefetchBodies(){
+if(prefetchRunning)return;prefetchRunning=true;
+const titles=(cache.get(current)||[]).slice(0,20).map(a=>a.article).filter(t=>!bodyCache.has(t));
+let i=0;
+const run=async()=>{while(i<titles.length){const t=titles[i++];try{await getBody(t)}catch(e){}}};
+await Promise.all([run(),run()]);
+prefetchRunning=false;
 }
 
 function renderBody(title){
