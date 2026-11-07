@@ -54,10 +54,13 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .ph{color:#526174;font-size:13px;line-height:1.8;margin:0}
 .imgcount{font-size:12px;color:#526174;margin:12px 0 0;line-height:1.7}
 /* ---- article body ---- */
-.article{font-size:16px;line-height:1.8;overflow-wrap:break-word}
+.article{font-size:16px;line-height:1.7;overflow-wrap:break-word;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif CJK JP",serif}
 .article img{max-width:100%;height:auto}
 .article .tblwrap{overflow-x:auto;margin:12px 0}
-.article table{float:none!important;width:100%!important;max-width:100%!important;border-collapse:collapse;margin:0}
+.article table{float:none!important;width:100%!important;max-width:100%!important;border-collapse:collapse;margin:0;border:1px solid #c8ccd1;background:#f8f9fa;font-size:14px}
+.article table th,.article table td{border-bottom:1px solid #eaecf0;padding:6px 8px;vertical-align:top}
+.article table tr:last-child th,.article table tr:last-child td{border-bottom:0}
+.article table caption,.article table th{font-weight:700}
 .article h1,.article h2,.article h3,.article h4{line-height:1.4;margin:20px 0 8px}
 .article p{margin:10px 0}
 .article ul,.article ol{padding-left:24px;margin:10px 0}
@@ -65,7 +68,7 @@ footer{margin-top:20px;font-size:12px;line-height:1.8;color:#526174}
 .article a{color:#2456a6}
 /* 折りたたみ(見出しごとに開閉) */
 .article details{border-bottom:1px solid #dce4ef}
-.article summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:52px;font-weight:700;font-size:19px;padding:12px 2px}
+.article summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:52px;font-weight:700;font-size:19px;padding:12px 2px;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif CJK JP",serif}
 .article summary::-webkit-details-marker{display:none}
 .article summary::before{content:"";flex:none;width:8px;height:8px;border-right:2px solid #526174;border-bottom:2px solid #526174;transform:rotate(-45deg);transition:transform .15s}
 .article details[open]>summary::before{transform:rotate(45deg)}
